@@ -1,21 +1,22 @@
 #include <GameObject.hpp>
+#include <TagManager.hpp>
 
 /* ******************* [v] CONSTRUCTOR AND DESTRUCTOR [v] ******************* */
 GameObject::GameObject(
 	glm::vec2 pos,
 	glm::vec2 size,
-	Texture2D sprite,
-	glm::vec3 color,
-	glm::vec2 velocity
-): 
+	std::string sprite,
+	glm::vec3 color
+):
 	_position(pos),
 	_size(size),
-	_velocity(velocity),
 	_color(color),
 	_rotation(0.0f),
-	_sprite(sprite),
 	_isSolid(false),
-	_destroyed(false) 
+	_destroyed(false),
+	_isReversed(false),
+	_sprite(sprite),
+	_collision(pos, size)
 {
 
 }
@@ -43,6 +44,11 @@ bool GameObject::isDestroyed() const
 {
 	return _destroyed;
 }
+
+Collision	GameObject::getCollision() const
+{
+	return (this->_collision);
+}
 /* **************************** [^] GETTERS [^] ***************************** */
 
 /* **************************** [v] SETTERS [v] ***************************** */
@@ -53,13 +59,39 @@ void GameObject::setSolid(bool solid)
 
 void GameObject::setPosition(glm::vec2 pos)
 {
+	_collision.setPosition(pos + _collision.getPosition() - _position);
 	_position = pos;
+}
+
+void GameObject::setCollisionSize(glm::vec2 size)
+{
+	_collision.setSize(size);
+}
+
+void GameObject::setCollisionPosition(glm::vec2 pos)
+{
+	_collision.setPosition(pos);
+}
+
+void GameObject::setCollision(glm::vec2 pos, glm::vec2 size)
+{
+	_collision.setCollision(pos, size);
+}
+
+void GameObject::setIsReversed(bool flip)
+{
+	_isReversed = flip;
 }
 /* **************************** [^] SETTERS [^] ***************************** */
 
 /* **************************** [v] FUNCTIONS [v] *************************** */
 void GameObject::draw(SpriteRenderer &renderer)
 {
-    renderer.drawSprite(_sprite, _position, _size, _rotation, _color);
+    renderer.drawSprite(_sprite, _position, _size,_isReversed, _rotation, _color);
+}
+
+void GameObject::tagAdd(e_tag tag)
+{
+	TagManager::addTag(tag, this);
 }
 /* **************************** [^] FUNCTIONS [^] *************************** */

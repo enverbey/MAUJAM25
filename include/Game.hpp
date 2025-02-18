@@ -1,46 +1,83 @@
-#ifndef GAME_H
-#define GAME_H
+#ifndef GAME_HPP
+# define GAME_HPP 202502
 
-#include <glad/glad.h>
-#include <GLFW/glfw3.h>
+#include <Utils.hpp>
+#include <Shader.hpp>
+#include <Game/GameMap.hpp>
+#include <Texture2D.hpp>
 #include <SpriteRenderer.hpp>
-#include <GameLevel.hpp>
+#include <map>
+#include <Player.hpp>
+#include <Camera.hpp>
+
+using std::map;
+using std::string;
 
 class Game
 {
 public:
-	enum GameState {
+	enum class GameState
+	{
 		GAME_ACTIVE,
 		GAME_MENU,
 		GAME_WIN
 	};
-private:
-	const glm::vec2 _playerSize = glm::vec2(200.0f, 200.0f);
-	constexpr static float _playerVelocity = 500.0f;
-	std::vector<GameLevel>	_levels;
-	GameObject				*Player;
-	unsigned int			_currentLevel;
-	Game::GameState				_state;
-	SpriteRenderer			*_renderer;
-	bool					_keys[1024];
-	unsigned int			_width, _height;
-
 public:
+	Game(void);
+	~Game(void);
 
-	Game(unsigned int width, unsigned int height);
-	~Game();
-	void init();
-	// game loop
-	void processInput(float dt);
-	void update(float dt);
-	void render();
-	
-	//Getters
-	unsigned int getLevel() const;
-	bool getKeys(int key) const;
+	void		init(void);
+	void		initRender(void);
+	void		start(void);
+	void		loop(void);
+	void		newMap(const char *, const char *);
+	void		process(float dt);
+	void		processInput(float dt);
+	void		render(void);
+	void		update(float);
+	void		resetInputs();
+	static void	updateKeyStatus(int key, bool status);
+	std::map<std::string, unsigned int> uniformShaders;
+	float		deltaTime = 0.0f;
+private:
+	constexpr static float _playerVelocity = 500.0f;
+	static bool				_keys[1024];
+	unsigned int			SCREEN_WIDTH;
+	unsigned int			SCREEN_HEIGHT;
+	unsigned int 			_quadVAO;
+	Game::GameState			_state;
+	SpriteRenderer			*_renderer;
+	GLFWwindow  			*_window;
+	// Player					*_player;
+	// Player					*_enemy;
+	std::vector<Wall>		*_walls;
+	Camera  				*_camera;
+	map<string, GameMap>	maps;
+	unsigned int VAO, VBO;
 
-	void setKeys(int key, bool value);
-	void setLevel(unsigned int level);
+	void    createLight();
+	void	printLight();
+
+/* **************** [] UPLOAD ANIMATION SPRITES [] **************** */
+/* ******************* [v] FORK MAIN CHARACTER [v] ******************* */
+void	uploadForkBattle_stance();
+void	uploadForkClimb();
+void	uploadForkDamage();
+void	uploadForkDash();
+void	uploadForkDeath();
+void	uploadForkDoublePunch();
+void	uploadForkJump();
+void	uploadForkSprint();
+void	uploadForkHide();
+void	uploadForkQuickPunch();
+void	uploadForkStill();
+void	uploadForkHurt();
+/* ******************* [^] FORK MAIN CHARACTER [^] ******************* */
+void	uploadBackground();
+void	upload_Platform();
+void	upload_Discard();
+void	upload_GroundTextures();
+void	uploadSimpleTextures();
 };
 
-#endif
+#endif /* GAME_HPP */

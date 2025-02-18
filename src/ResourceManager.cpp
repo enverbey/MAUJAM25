@@ -15,7 +15,7 @@
 #include <iostream>
 #include <sstream>
 #include <fstream>
-
+#include <graphic/Graphic.hpp>
 #include <stb_images/stb_image.h>
 
 // Instantiate static variables
@@ -95,7 +95,7 @@ Shader ResourceManager::loadShaderFromFile(const char *vShaderFile, const char *
 	const char *gShaderCode = geometryCode.c_str();
 	// 2. now create shader object from source code
 	Shader shader;
-	shader.Compile(vShaderCode, fShaderCode, gShaderFile != nullptr ? gShaderCode : nullptr);
+	shader.init(vShaderFile, fShaderFile);
 	return shader;
 }
 
@@ -111,6 +111,10 @@ Texture2D ResourceManager::loadTextureFromFile(const char *file, bool alpha)
 	// load image
 	int width, height, nrChannels;
 	unsigned char* data = stbi_load(file, &width, &height, &nrChannels, 0);
+	if(data == NULL)
+	{
+		throw std::runtime_error("Failed to load texture: " + std::string(file));
+	}
 	// now generate texture
 	texture.generate(width, height, data);
 	// and finally free image data

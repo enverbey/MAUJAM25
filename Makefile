@@ -1,55 +1,105 @@
-NAME			=	scop
+CXX			=	c++
 
-INCLUDEFLAGS	=	-Ilib -Iinclude
-LDFLAGS			=	-lglfw -ldl -lGL -lz
+INCLUDEFLAGS =	-Ilib -Iinclude \
+				-Iinclude/Animation \
+				-Iinclude/Enemies \
+				-Iinclude/Game \
+				-Iinclude/Objects
 
-SRC				=	lib/glad/glad.c \
-					lib/stb_images/stb_image.c \
+RM	=	rm -rf
 
-SRC 			+=	src/Utils.cpp \
-					src/Window.cpp \
-					src/Shader.cpp \
-					src/Camera.cpp \
-					src/Texture2D.cpp \
-					src/ResourceManager.cpp \
-					src/SpriteRenderer.cpp \
-					src/GameObject.cpp \
-					src/GameLevel.cpp \
-					src/Game.cpp \
-					src/main.cpp
+ifeq ($(OS),Windows_NT)
+	NAME			= jam.exe
+	RELEASE_FLAGS	= -O3 -DNDEBUG -s
+	LDFLAGS			= -lglfw3 -lgdi32 -lopengl32 -lmingw32
+else
+	NAME			= jam
+	RELEASE_FLAGS	=
+	LDFLAGS			=	-lglfw -ldl -lGL -lz
+#	LDFLAGS			=	-lglfw -lGL -lGLEW -lm
+endif
 
-OBJDIR			=	obj
-OBJ				=	$(SRC:%.cpp=$(OBJDIR)/%.o)
-OBJ				:=	$(OBJ:%.c=$(OBJDIR)/%.o)
+CXXFLAGS	=	#-Wextra -Wall #-Werror
+CXXFLAGS	+= $(RELEASE_FLAGS) $(INCLUDEFLAGS)
 
-CXX				=	c++
-CC				=	gcc
 
-RM				=	rm -rf
+GRAPHIC		=	lib/graphic.a
 
-all:	$(NAME)
+SRCDIR			=	./src
+ANIMDIR			=	$(SRCDIR)/Animation
+ENEMDIR			=	$(SRCDIR)/Enemies
+OBJECTSDIR		=	$(SRCDIR)/Objects
 
-$(NAME):	$(OBJ)
-	$(CXX)	$(OBJ)	$(INCLUDEFLAGS)	$(LDFLAGS)	-o	$(NAME)
+#Animation
+SRC			=	$(ANIMDIR)/Animation.cpp \
+				$(ANIMDIR)/Animationable.cpp \
 
-$(OBJDIR)/%.o: %.cpp
-	@mkdir -p $(dir $@)
-	$(CXX) $(INCLUDEFLAGS) -c $< -o $@
+#Enemies
+SRC			+=	$(ENEMDIR)/Enemy.cpp \
+				$(ENEMDIR)/Wowo.cpp \
 
-$(OBJDIR)/%.o: %.c
-	@mkdir -p $(dir $@)
-	$(CC) $(INCLUDEFLAGS) -c $< -o $@
+#Objects
+SRC			+=	$(OBJECTSDIR)/Player.cpp \
+				$(OBJECTSDIR)/Wall.cpp
+
+SRC			+=	$(SRCDIR)/Camera.cpp \
+				$(SRCDIR)/Collision.cpp \
+				$(SRCDIR)/CollisionManager.cpp \
+				$(SRCDIR)/Game.cpp \
+				$(SRCDIR)/GameMap.cpp \
+				$(SRCDIR)/GameMapUploads.cpp \
+				$(SRCDIR)/GameObject.cpp \
+				$(SRCDIR)/GameUploads.cpp \
+				$(SRCDIR)/GameUtils.cpp \
+				$(SRCDIR)/InputCallbacks.cpp \
+				$(SRCDIR)/main.cpp \
+				$(SRCDIR)/ResourceManager.cpp \
+				$(SRCDIR)/Shader.cpp \
+				$(SRCDIR)/SpriteRenderer.cpp \
+				$(SRCDIR)/TagManager.cpp \
+				$(SRCDIR)/Texture2D.cpp
+
+OBJDIR		=	./obj
+OBJ			=	$(SRC:%.cpp=$(OBJDIR)/%.o)
+
+all: graphall $(NAME)
+
+$(NAME): $(OBJ)
+	$(CXX) $(CXXFLAGS) $(OBJ) $(GRAPHIC) $(LDFLAGS) -o $(NAME)
+
+rrun: re
+	@./$(NAME) || true
+
+run: all
+	@./$(NAME) || true
 
 c: clean
 clean:
-	@$(RM) $(OBJDIR)/*
+	@make -C lib clean
+	$(RM) $(OBJDIR)
 
-fc: fclean
-fclean: clean
-	@$(RM) $(NAME)
+f: fc
+fclean: fc
+fc: clean
+	@make -C lib fclean
+	$(RM) $(NAME)
 
 re: fclean all
+
+rr: rerun
+
+rerun: re
+	./$(NAME)
 
 run : all
 	./$(NAME)
 .PHONY: all c clean fc fclean re run
+
+$(OBJDIR)/%.o: %.cpp
+	@mkdir -p $(dir $@)
+	$(CXX) $(CXXFLAGS) -c $< -o $@
+
+graphall:
+	@make -C lib
+
+.PHONY: all clean fclean re c f
